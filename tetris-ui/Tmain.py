@@ -8,6 +8,7 @@ Created on Tue Oct 15 15:39:17 2024
 
 import pygame, sys
 from grid import Grid
+from blocks import *
 
 pygame.init()
 
@@ -21,11 +22,7 @@ clock = pygame.time.Clock() #setting the frame rate of the game
 #printing the game grid (list of lists of cells)
 game_grid = Grid() #creates the grid
 
-game_grid.grid[0][0] = 1 #hard setting cells of the grid
-game_grid.grid[3][5] = 4
-game_grid.grid[17][8] = 7
-
-game_grid.print_grid() #prints the grid
+block = LBlock()
 
 
 while True: #initialising the game
@@ -38,6 +35,7 @@ while True: #initialising the game
     #Drawing
     screen.fill(dark_blue)
     game_grid.draw(screen)
+    block.draw(screen)
     
     pygame.display.update()
     clock.tick(60) #the while loop will run 60 times a second
