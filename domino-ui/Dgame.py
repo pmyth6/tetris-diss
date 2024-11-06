@@ -8,6 +8,7 @@ Created on Thu Oct 24 14:30:17 2024
 
 from Dgrid import Grid
 from Dblocks import *
+from datetime import datetime
 import random
 
 class Game:
@@ -54,7 +55,8 @@ class Game:
         self.next_block = DBlock()
         rows_cleared = self.grid.clear_full_rows()
         self.update_score(rows_cleared, 0)
-        self.grid.print_grid()
+        #self.grid.print_grid() #prints the grid to the console
+        self.grid.save_grid_as_image(f"{str(datetime.utcnow())}.png") #saves the grid as the utctime.png
         if self.block_fits() == False:
             self.game_over = True
             

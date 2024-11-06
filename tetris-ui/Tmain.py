@@ -30,6 +30,8 @@ game = Game()
 GAME_UPDATE = pygame.USEREVENT
 pygame.time.set_timer(GAME_UPDATE, 200)
 
+print(type(game.current_block))
+
 #The game loop
 while True: #initialising the game
     for event in pygame.event.get(): #looking through all the possible events

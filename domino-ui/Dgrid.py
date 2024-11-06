@@ -7,6 +7,9 @@ Created on Thu Oct 24 14:31:01 2024
 """
 
 import pygame
+import numpy as np
+import os
+from PIL import Image
 from Dcolors import Colors
 
 class Grid:
@@ -23,6 +26,15 @@ class Grid:
             for column in range(self.num_cols):
                 print(self.grid[row][column], end = " ")
             print()
+            
+    def save_grid_as_image(self, filename):
+        image_data = np.array(self.grid, dtype=np.uint8) *255 #so that 0 is black and 1 is white
+        image = Image.fromarray(image_data)
+        directory = "C:/Test_data"
+        file_path = os.path.join(directory, filename)
+        os.makedirs(directory, exist_ok=True)
+        image.save(file_path)
+        #image.save(filename)
             
     def is_inside(self, row, column):
         if row >= 0 and row < self.num_rows and column>=0 and column < self.num_cols:
