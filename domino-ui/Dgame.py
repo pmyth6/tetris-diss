@@ -53,10 +53,12 @@ class Game:
             self.grid.grid[position.row][position.column] = 1 #when blocks lock they are light grey
         self.current_block = self.next_block
         self.next_block = DBlock()
+        self.grid.save_grid_as_image(f"{str(datetime.utcnow())}.png") #saves the grid as the utctime.png before row clearing
         rows_cleared = self.grid.clear_full_rows()
         self.update_score(rows_cleared, 0)
         #self.grid.print_grid() #prints the grid to the console
-        self.grid.save_grid_as_image(f"{str(datetime.utcnow())}.png") #saves the grid as the utctime.png
+        #if rows_cleared>0:
+            #self.grid.save_grid_as_image(f"{str(datetime.utcnow())}.png") #saves the grid as the utctime.png after row clearing (if it occurs)
         if self.block_fits() == False:
             self.game_over = True
             
