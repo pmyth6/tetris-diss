@@ -6,7 +6,9 @@ Created on Fri Oct 18 11:18:53 2024
 @author: theahellen
 """
 
+#Define the colors class
 class Colors:
+    #Set each colour using rgb values
     dark_grey = (26, 31, 40)
     orange = (226, 116, 17)
     blue = (13, 64, 216)
@@ -20,7 +22,7 @@ class Colors:
     dark_blue = (44, 44, 127)
     light_blue = (59, 85, 162)
 
-    
+    #Method to give the list of colours, can be indexed to get one colour
     @classmethod 
     def get_cell_colors(cls):
         return [cls.dark_grey, cls.light_grey, cls.orange, cls.blue, cls.cyan, cls.yellow, cls.green, cls.purple, cls.red]

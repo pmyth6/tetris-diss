@@ -6,10 +6,12 @@ Created on Thu Oct 24 14:32:12 2024
 @author: theahellen
 """
 
+#Import the block and position classes
 from Dblock import Block
 from Dposition import Position
 
-class DBlock(Block): #this class is now a child of the block class using inheritance
+#Define the D-block using inheritance
+class DBlock(Block):
     def __init__(self):
         super().__init__(id = 1)
         self.cells = {
@@ -18,7 +20,7 @@ class DBlock(Block): #this class is now a child of the block class using inherit
             2: [Position(1, 0), Position(1, 1)],
             3: [Position(0, 0), Position(1, 0)]
         }
-        self.move(0, 4) #so that the block spawns in the middle of the grid
+        self.move(0, 4)
         
 
     

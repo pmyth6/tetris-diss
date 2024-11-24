@@ -6,10 +6,14 @@ Created on Fri Oct 18 11:36:39 2024
 @author: theahellen
 """
 
+#Import the block and position classes
 from block import Block
 from position import Position
 
-class LBlock(Block): #this class is now a child of the block class using inheritance
+#Define each block as a class which is a child of the block class
+#Each class contains the positions of each cell for each rotation state of the
+#block
+class LBlock(Block):
     def __init__(self):
         super().__init__(id = 1)
         self.cells = {
@@ -41,7 +45,8 @@ class IBlock(Block):
             3: [Position(0, 1), Position(1, 1), Position(2, 1), Position(3, 1)]    
         }
         self.move(-1, 3)
-        
+ 
+#The O-block only has one rotation state
 class OBlock(Block): 
     def __init__(self):
         super().__init__(id = 4)
