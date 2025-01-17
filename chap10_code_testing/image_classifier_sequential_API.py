@@ -66,7 +66,7 @@ hidden1 = model.layers[1]
 #you can print its name
 print(hidden1.name)
 #and fetch by its name
-print(model.get_layer('dense') is hidden1) #outputs True
+#print(model.get_layer('dense') is hidden1) #outputs True
 
 #you can access the paramters of a layer like so
 weights, biases = hidden1.get_weights()
@@ -115,6 +115,7 @@ model.evaluate(X_test, y_test)
 #%% USING THE MODEL TO MAKE PREDICTIONS
 
 X_new = X_test[:3]
+print(type(X_new))
 y_proba = model.predict(X_new) #predicts the probability of each class
 print(y_proba.round(2))
 
