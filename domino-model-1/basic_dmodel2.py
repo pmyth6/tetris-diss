@@ -44,6 +44,9 @@ class Model:
         self.current_grid = []
         
         self.row = 0
+        self.gap = 0
+        
+        self.previous_score = 0
         
         self.previous_action = "h5"
     
@@ -74,7 +77,7 @@ class Model:
         self.optimizer.apply_gradients(zip(grads, self.model.trainable_variables))
         
         # Save to CSV
-        self.save_to_csv(current_move, action, self.row, loss, game_no, score)
+        self.save_to_csv(current_move, action, self.row, self.gap, loss, game_no, score)
         
         # Set current move as previous move for future use
         self.previous_action = action
@@ -98,8 +101,18 @@ class Model:
         repeat_loss = 0
         if self.previous_action == action:
             repeat_loss = 10
+            
+        # Reward for an increase in score - will also punish when the score 
+        # decreases when a new game is initialised
+        # So also punishes for losing the game
+        score_change = score - self.previous_score
+        self.previous_score = score
+        
+        # Punish for leaving any gaps
+        self.gap = self.calculate_gap(action)
+        gap_loss = self.gap**3
 
-        return -(base_loss - action_prob/100000 + repeat_loss - score)
+        return -(base_loss - action_prob/100000 + repeat_loss - score_change + gap_loss)
     
     def calculate_row_placement(self, action):
         # 1 1
@@ -129,25 +142,27 @@ class Model:
                 
         return row+1
     
-    '''
+
     def calculate_gap(self, action):
         gap = 0
-        row = self.row-1 # Zero based indexing
+        row = self.row-1
         col = int(action[1])
         col -= 1 # Zero based indexing
         
-        if action[0] == "h":
-            while self.current_grid[0, 20-row, col] == 0 and self.current_grid[0, 20-row, col+1] == 0:
+        if action[0] == "h" and row!=0:
+            while self.current_grid[0, 20-row, col] == 0 or self.current_grid[0, 20-row, col+1] == 0:
                 row -= 1
+                gap += 1
                 if row == 0:
                     break
-            
+                
+                
         
         return gap
-    '''
+
             
 
-    def save_to_csv(self, current_move, action, no_rows, loss, no_games, score):
+    def save_to_csv(self, current_move, action, no_rows, gap, loss, no_games, score):
         filename = "log.csv"
         
         file_exists = False
@@ -160,14 +175,15 @@ class Model:
         if not file_exists:
             with open(filename, mode='w', newline='') as file:
                 writer = csv.writer(file)
-                writer.writerow(['grid', 'move', 'row placement', 'loss', 'score', 
-                                 'game no.', 'weights layer 1', 'weights layer 2', 'weights layer 3'])
+                writer.writerow(['grid', 'move', 'row placement', 'gap left', 
+                                 'loss', 'score', 'game no.', 'weights layer 1', 
+                                 'weights layer 2', 'weights layer 3'])
         
         weights1, biases1 = self.hidden1.get_weights()
         weights2, biases2 = self.hidden2.get_weights()
         weights3, biases3 = self.hidden3.get_weights()
         
-        row = [current_move.numpy().flatten(), action, no_rows, loss.numpy(), 
+        row = [current_move.numpy().flatten(), action, no_rows, gap, loss.numpy(), 
                score, no_games, weights1, weights2, weights3]
         with open(filename, mode='a', newline='') as file:
             writer = csv.writer(file)
