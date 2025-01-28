@@ -20,6 +20,8 @@ class Game:
         self.game_over = False
         self.score = 0
         self.model = Model()
+        self.game_no = 0
+        '''
         #get grid
         input_tensor = self.grid.get_grid()
         #get move
@@ -92,7 +94,7 @@ class Game:
                 self.move_right()
                 self.move_right()
                 self.move_right()
-                
+        '''
     def update_score(self, lines_cleared, move_down_points):
         if lines_cleared == 1:
             self.score += 100
@@ -129,8 +131,7 @@ class Game:
         #get grid
         input_tensor = self.grid.get_grid()
         #get move
-        next_move = self.model.model_play(input_tensor)
-        print(next_move)
+        next_move = self.model.model_play(input_tensor, self.score, self.game_no)
         #interpret and execute move
         enumerate(next_move)
         if next_move[0] == "h":
@@ -201,7 +202,8 @@ class Game:
         rows_cleared = self.grid.clear_full_rows()
         self.update_score(rows_cleared, 0)
         #self.grid.print_grid() #prints the grid to the console
-        if self.block_fits() == False:
+        #if self.block_fits() == False:
+        if self.grid.is_row_empty(0) == False:
             self.game_over = True
             
     def reset(self):
@@ -210,13 +212,15 @@ class Game:
         self.current_block = DBlock()
         self.next_block = DBlock()
         self.score = 0
+        self.game_no += 1
         self.game_over = False
             
     def block_fits(self):
         tiles = self.current_block.get_cell_positions()
         for tile in tiles:
-            if self.grid.is_empty(tile.row, tile.column) == False:
+            if self.grid.is_empty(tile.row, tile.column) == False and self.grid.is_row_full(19) == False:
                 return False
+        self.model.model.save('model.keras')
         return True
             
     def rotate(self):

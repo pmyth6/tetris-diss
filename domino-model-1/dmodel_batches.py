@@ -38,6 +38,10 @@ class Model:
         
         self.moves = ["h1", "h2", "h3", "h4", "h5", "h6", "h7", "h8", "h9",
                      "v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8", "v9", "v0"]
+        
+        self.all_grads = []
+        self.all_rewards = []
+        self.count = 0
 
     def loss_fn(self, current_move, probabilities, action_index):
         # Calculate rows with blocks
@@ -55,6 +59,9 @@ class Model:
         return base_loss - action_prob/100000
     
     def model_play(self, current_move):
+        # Set number of episodes
+        no_episodes = 10
+        
         # Convert input to tensor if it's not already
         current_move = tf.convert_to_tensor(current_move, dtype=tf.float32)
         
@@ -72,8 +79,19 @@ class Model:
         # Calculate gradients
         grads = tape.gradient(loss, self.model.trainable_variables)
         
+        # Save the loss and the gradients then update the count
+        self.all_rewards[self.count] = loss
+        self.all_grads[self.count] = grads
+        self.count += 1
+        
+        if self.count == no_episodes:
+            # Reset count
+            self.count = 0
+            
+            
+        
         # Apply gradients
-        self.optimizer.apply_gradients(zip(grads, self.model.trainable_variables))
+        #self.optimizer.apply_gradients(zip(grads, self.model.trainable_variables))
         
         # Get the selected action
         action = self.moves[int(action_index)]
@@ -81,6 +99,7 @@ class Model:
         # Save to CSV
         self.save_to_csv(current_move, action, self.no_rows, loss)
         
+        # Play selected action
         return action
 
     def save_to_csv(self, current_move, action, no_rows, loss):
@@ -102,3 +121,7 @@ class Model:
         with open(filename, mode='a', newline='') as file:
             writer = csv.writer(file)
             writer.writerow(row)
+            
+    def discount_rewards(self, discount_factor):
+        discounted = np.array(self.all_rewards)
+        

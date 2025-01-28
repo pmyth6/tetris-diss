@@ -33,6 +33,8 @@ GAME_UPDATE = pygame.USEREVENT
 
 pygame.time.set_timer(GAME_UPDATE, 50)
 
+pause = False
+
 #The game loop
 while True: #initialising the game
     for event in pygame.event.get(): #looking through all the possible events
@@ -41,12 +43,15 @@ while True: #initialising the game
             pygame.quit()
             sys.exit()
             
-        if event.type == pygame.KEYDOWN:
-            keyInput = pygame.key.get_pressed()
-            if game.game_over == True:
-                game.reset()
+        if event.type == pygame.KEYDOWN: #if the user presses the spacebar the game loop pauses
+            if event.key == pygame.K_SPACE:
+                keyInput = pygame.key.get_pressed()
+                pause = not pause
             
-        if event.type == GAME_UPDATE and game.game_over == False:
+        if game.game_over == True:
+            game.reset()
+            
+        if event.type == GAME_UPDATE and game.game_over == False and pause == False:
             game.move_down()
      
     #Drawing
