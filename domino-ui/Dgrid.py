@@ -54,6 +54,12 @@ class Grid:
             return True
         return False
     
+    def is_row_empty(self, row):
+        for column in range(self.num_cols):
+            if self.grid[row][column] != 0:
+                return False
+        return True
+    
     def is_row_full(self, row):
         for column in range(self.num_cols):
             if self.grid[row][column] == 0:

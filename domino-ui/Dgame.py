@@ -56,7 +56,8 @@ class Game:
         rows_cleared = self.grid.clear_full_rows()
         self.update_score(rows_cleared, 0)
         self.grid.print_grid() #prints the grid to the console
-        if self.block_fits() == False:
+        #if self.block_fits() == False:
+        if self.grid.is_row_empty(0) == False:
             self.game_over = True
             
     def reset(self):

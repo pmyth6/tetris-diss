@@ -29,7 +29,7 @@ clock = pygame.time.Clock() #setting the frame rate of the game
 game = Game()
 
 GAME_UPDATE = pygame.USEREVENT
-pygame.time.set_timer(GAME_UPDATE, 200)
+pygame.time.set_timer(GAME_UPDATE, 400)
 
 #The game loop
 while True: #initialising the game

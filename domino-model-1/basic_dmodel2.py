@@ -24,8 +24,8 @@ class Model:
 
         #dense layers
         self.model.add(keras.layers.Dense(100, kernel_initializer='RandomNormal', activation="relu"))
-        self.model.add(keras.layers.Dense(50, kernel_initializer='RandomNormal', activation="relu"))
-        self.model.add(keras.layers.Dense(50, kernel_initializer='RandomNormal', activation="relu"))
+        self.model.add(keras.layers.Dense(50, kernel_initializer='RandomNormal', activation="sigmoid"))
+        self.model.add(keras.layers.Dense(50, kernel_initializer='RandomNormal', activation="tanh"))
 
         #output layer
         self.model.add(keras.layers.Dense(19, activation="softmax"))

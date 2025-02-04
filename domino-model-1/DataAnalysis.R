@@ -1,4 +1,4 @@
-data = read.csv("log_50hr9.csv")
+data = read.csv("log20hr21punishgaps.csv")
 
 #Remove last game as it didn't finish
 max.game = max(data$game.no.)
@@ -17,8 +17,8 @@ plot(x, y, type = "n", ylim = c(0, 400 + 5), xlab = "Data Number", ylab = "Score
 segments(x0 = x, y0 = 0, x1 = x, y1 = y, col = data$game.no., lwd = 2)
 
 # Create a blank plot
-x = 251179:256179
-y = data$score[251179:256179]+100
+x = 99549:104549
+y = data$score[99549:104549]+100
 plot(x, y, type = "n", ylim = c(0, 400 + 5), xlab = "Data Number", ylab = "Score + 100", main = "Last 5000 Games")
 # Add vertical lines
 segments(x0 = x, y0 = 0, x1 = x, y1 = y, col = data$game.no., lwd = 2)
