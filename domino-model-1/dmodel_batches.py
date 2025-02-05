@@ -22,13 +22,13 @@ class Model:
         #convert each grid (20x10 array) to a 1D array
         self.model.add(keras.layers.Flatten())
 
-        #dense layers
-        self.model.add(keras.layers.Dense(200, kernel_initializer='RandomNormal', activation="relu"))
-        self.model.add(keras.layers.Dense(100, kernel_initializer='RandomNormal', activation="relu"))
-        self.model.add(keras.layers.Dense(100, kernel_initializer='RandomNormal', activation="relu"))
+        #dense layers with bias_initializer set to zeros
+        self.model.add(keras.layers.Dense(100, kernel_initializer='RandomNormal', bias_initializer='zeros', activation="relu"))
+        self.model.add(keras.layers.Dense(50, kernel_initializer='RandomNormal', bias_initializer='zeros', activation="sigmoid"))
+        self.model.add(keras.layers.Dense(50, kernel_initializer='RandomNormal', bias_initializer='zeros', activation="tanh"))
 
-        #output layer
-        self.model.add(keras.layers.Dense(19, activation="softmax"))
+        #output layer with bias_initializer set to zeros
+        self.model.add(keras.layers.Dense(19, bias_initializer='zeros', activation="softmax"))
         
         self.hidden1 = self.model.layers[1]
         self.hidden2 = self.model.layers[2]
@@ -39,31 +39,28 @@ class Model:
         self.moves = ["h1", "h2", "h3", "h4", "h5", "h6", "h7", "h8", "h9",
                      "v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8", "v9", "v0"]
         
-        self.all_grads = []
-        self.all_rewards = []
+        self.current_grid = []
+        
+        self.row = 0
+        self.gap = 0
+        
+        self.previous_score = 0
+        
+        self.previous_action = "h5"
+
+        # Number of moves to play before updating the model
+        self.no_moves = 30
+        self.all_grads = [None] * self.no_moves
+        self.all_rewards = [None] * self.no_moves
         self.count = 0
 
-    def loss_fn(self, current_move, probabilities, action_index):
-        # Calculate rows with blocks
-        rows_with_one = tf.reduce_any(tf.cast(current_move, tf.bool), axis=2)
-        self.no_rows = tf.reduce_sum(tf.cast(rows_with_one, tf.float32))
-        
-        # Calculate base loss based on number of rows
-        base_loss = tf.floor((self.no_rows-1.0)/2.0)
-        
-        # Get the probability of the chosen action
-        action_prob = probabilities[0, action_index]
-        
-        # Combine the losses - we want to maximize action probability when the move is good
-        # (i.e., when base_loss is low)
-        return base_loss - action_prob/100000
+        # Set discount factor
+        self.discount_factor = 0.99
     
-    def model_play(self, current_move):
-        # Set number of episodes
-        no_episodes = 10
-        
+    def model_play(self, current_move, score, game_no):
         # Convert input to tensor if it's not already
         current_move = tf.convert_to_tensor(current_move, dtype=tf.float32)
+        self.current_grid = current_move
         
         with tf.GradientTape() as tape:
             # Get model predictions
@@ -72,9 +69,12 @@ class Model:
             # Sample action from probabilities
             log_probs = tf.math.log(probabilities)
             action_index = tf.random.categorical(log_probs, 1)[0][0]
+
+            # Get the selected action
+            action = self.moves[int(action_index)]
             
             # Calculate loss
-            loss = self.loss_fn(current_move, probabilities, action_index)
+            loss = self.loss_fn(current_move, probabilities, action_index, action, score)
             
         # Calculate gradients
         grads = tape.gradient(loss, self.model.trainable_variables)
@@ -84,25 +84,116 @@ class Model:
         self.all_grads[self.count] = grads
         self.count += 1
         
-        if self.count == no_episodes:
+        # If we have played the required number of moves update the model
+        if self.count == self.no_moves:
+            # Discount and normalize rewards
+            all_rewards = self.discount_rewards()
+            all_rewards = self.normalize_rewards(all_rewards)
+
+            # Apply gradients
+            for var_index, var in enumerate(self.model.trainable_variables):
+                mean_gradients = np.mean([self.all_grads[move][var_index] * all_rewards[move] for move in range(self.no_moves)], axis=0)
+                self.optimizer = keras.optimizers.Adam(learning_rate=0.01)
+                self.optimizer.apply_gradients([(mean_gradients, var)])
+
+            # Reset rewards
+            self.all_rewards = [None] * self.no_moves
+            self.all_grads = [None] * self.no_moves
+
             # Reset count
             self.count = 0
-            
-            
-        
-        # Apply gradients
-        #self.optimizer.apply_gradients(zip(grads, self.model.trainable_variables))
         
         # Get the selected action
         action = self.moves[int(action_index)]
+
+        # Set current move as previous move for future use
+        self.previous_action = action
         
         # Save to CSV
-        self.save_to_csv(current_move, action, self.no_rows, loss)
+        self.save_to_csv(current_move, action, self.row, self.gap, loss, game_no, score, self.count)
         
         # Play selected action
         return action
+    
+    def loss_fn(self, current_move, probabilities, action_index, action, score):
+        # Get the number of the row the block will be placed in
+        self.row = self.calculate_row_placement(action)
+        
+        # Calculate base loss based on the row
+        #base_loss = tf.floor((self.row-1.0)/2.0)
+        
+        # Calculate base loss as the squared row placement
+        base_loss = self.row**2
+        
+        # Get the probability of the chosen action
+        action_prob = probabilities[0, action_index]
+        
+        # If the model makes the same move twice - punish it
+        repeat_loss = 0
+        if self.previous_action == action:
+            repeat_loss = 10
+            
+        # Reward for an increase in score - will also punish when the score 
+        # decreases when a new game is initialised
+        # So also punishes for losing the game
+        score_change = score - self.previous_score
+        self.previous_score = score
+        
+        # Punish for leaving any gaps
+        self.gap = self.calculate_gap(action)
+        gap_loss = self.gap**3
 
-    def save_to_csv(self, current_move, action, no_rows, loss):
+        return -(base_loss - action_prob/100000 + repeat_loss - score_change + gap_loss)
+
+    def calculate_row_placement(self, action):
+        # 1 1
+        if action[0] == "h":
+            col = int(action[1])
+            col -= 1 # Zero based indexing
+            
+            row = 19
+            while self.current_grid[0, 20-row, col] == 0 and self.current_grid[0, 20-row, col+1] == 0:
+                row -= 1
+                if row == 0:
+                    break
+            
+        # 1
+        # 1
+        if action[0] == "v":
+            col = int(action[1])
+            if col == 0:
+                col = 10
+            col -=1 # Zero based indexing
+            
+            row = 19
+            while self.current_grid[0, 20-row, col] == 0 and self.current_grid[0, 20-row-1, col] == 0:
+                row -= 1
+                if row == 0:
+                    break
+                
+        return row+1
+    
+
+    def calculate_gap(self, action):
+        gap = 0
+        row = self.row-1
+        col = int(action[1])
+        col -= 1 # Zero based indexing
+        
+        if action[0] == "h" and row!=0:
+            while self.current_grid[0, 20-row, col] == 0 or self.current_grid[0, 20-row, col+1] == 0:
+                row -= 1
+                gap += 1
+                if row == 0:
+                    break
+                
+                
+        
+        return gap
+
+            
+
+    def save_to_csv(self, current_move, action, no_rows, gap, loss, no_games, score, count):
         filename = "log.csv"
         
         file_exists = False
@@ -115,13 +206,29 @@ class Model:
         if not file_exists:
             with open(filename, mode='w', newline='') as file:
                 writer = csv.writer(file)
-                writer.writerow(['grid', 'move', 'number of rows', 'loss'])
+                writer.writerow(['grid', 'move', 'row placement', 'gap left', 
+                                 'loss', 'score', 'game no.', 'weights layer 1', 
+                                 'weights layer 2', 'weights layer 3', 'count'])
         
-        row = [current_move.numpy().flatten(), action, no_rows.numpy(), loss.numpy()]
+        weights1 = self.hidden1.get_weights()
+        weights2 = self.hidden2.get_weights()
+        weights3 = self.hidden3.get_weights()
+        
+        row = [current_move.numpy().flatten(), action, no_rows, gap, loss.numpy(), 
+               score, no_games, weights1, weights2, weights3, count]
         with open(filename, mode='a', newline='') as file:
             writer = csv.writer(file)
             writer.writerow(row)
             
-    def discount_rewards(self, discount_factor):
-        discounted = np.array(self.all_rewards)
+    def discount_rewards(self):
+        discounted_rewards = np.array(self.all_rewards, dtype=np.float32)
+        for step in range(len(self.all_rewards) - 2, -1, -1):
+            discounted_rewards[step] += discounted_rewards[step + 1] * self.discount_factor
+        return discounted_rewards
+
+    def normalize_rewards(self, rewards):
+        mean = np.mean(rewards)
+        std = np.std(rewards)
+        normalized_rewards = (rewards - mean) / (std + 1e-10)  # Add a small value to avoid division by zero
+        return normalized_rewards
         

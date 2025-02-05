@@ -1,4 +1,4 @@
-data = read.csv("log20hr21punishgaps.csv")
+data = read.csv("~/Documents/Uni/Year 4/Dissertation/new-tetris-diss/tetris-diss/domino-model-1/logs/log20hr21punishgaps.csv")
 
 #Remove last game as it didn't finish
 max.game = max(data$game.no.)

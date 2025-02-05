@@ -8,7 +8,7 @@ Created on Thu Oct 24 14:30:17 2024
 
 from Dgrid import Grid
 from Dblocks import *
-from basic_dmodel2 import Model
+from dmodel_batches import Model
 import random
 
 class Game:
