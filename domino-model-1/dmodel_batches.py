@@ -12,7 +12,7 @@ import numpy as np
 import csv
 
 class Model:
-    def __init__(self):
+    def __init__(self, model = False):
         #create a sequential model
         self.model = keras.models.Sequential()
 
@@ -45,13 +45,15 @@ class Model:
         self.gap = 0
         
         self.previous_score = 0
-        
+        self.previous_game_no = 0
         self.previous_action = "h5"
 
-        # Number of moves to play before updating the model
-        self.no_moves = 30
-        self.all_grads = [None] * self.no_moves
-        self.all_rewards = [None] * self.no_moves
+        # Number of episodes to play before updating the model
+        self.no_episodes = 10
+        self.grads = []
+        self.rewards = []
+        self.all_rewards = []
+        self.all_grads = []
         self.count = 0
 
         # Set discount factor
@@ -80,28 +82,34 @@ class Model:
         grads = tape.gradient(loss, self.model.trainable_variables)
         
         # Save the loss and the gradients then update the count
-        self.all_rewards[self.count] = loss
-        self.all_grads[self.count] = grads
+        self.rewards.append(loss)
+        self.grads.append(grads)
         self.count += 1
         
-        # If we have played the required number of moves update the model
-        if self.count == self.no_moves:
-            # Discount and normalize rewards
-            all_rewards = self.discount_rewards()
-            all_rewards = self.normalize_rewards(all_rewards)
+        # Discount the rewards when the game ends
+        if game_no != self.previous_game_no:
+            self.all_rewards.extend(self.discount_rewards())
+            self.all_grads.extend(self.grads)
+            self.grads = []
+            self.rewards = []
 
-            # Apply gradients
-            for var_index, var in enumerate(self.model.trainable_variables):
-                mean_gradients = np.mean([self.all_grads[move][var_index] * all_rewards[move] for move in range(self.no_moves)], axis=0)
-                self.optimizer = keras.optimizers.Adam(learning_rate=0.01)
-                self.optimizer.apply_gradients([(mean_gradients, var)])
+            # If we have played the required number of games update the model
+            if game_no%self.no_episodes == 0 and game_no!=0:
+                # Normalize rewards
+                self.all_rewards = self.normalize_rewards(self.all_rewards)
 
-            # Reset rewards
-            self.all_rewards = [None] * self.no_moves
-            self.all_grads = [None] * self.no_moves
+                # Apply gradients
+                for var_index, var in enumerate(self.model.trainable_variables):
+                    mean_gradients = np.mean([self.all_grads[move][var_index] * self.all_rewards[move] for move in range(len(self.all_rewards))], axis=0)
+                    self.optimizer = keras.optimizers.Adam(learning_rate=0.01)
+                    self.optimizer.apply_gradients([(mean_gradients, var)])
 
-            # Reset count
-            self.count = 0
+                # Reset rewards
+                self.all_rewards = []
+                self.all_grads = []
+
+                # Reset count
+                self.count = 0
         
         # Get the selected action
         action = self.moves[int(action_index)]
@@ -112,6 +120,9 @@ class Model:
         # Save to CSV
         self.save_to_csv(current_move, action, self.row, self.gap, loss, game_no, score, self.count)
         
+        # Set the previous game number
+        self.previous_game_no = game_no
+
         # Play selected action
         return action
     
@@ -221,8 +232,8 @@ class Model:
             writer.writerow(row)
             
     def discount_rewards(self):
-        discounted_rewards = np.array(self.all_rewards, dtype=np.float32)
-        for step in range(len(self.all_rewards) - 2, -1, -1):
+        discounted_rewards = np.array(self.rewards, dtype=np.float32)
+        for step in range(len(self.rewards) - 2, -1, -1):
             discounted_rewards[step] += discounted_rewards[step + 1] * self.discount_factor
         return discounted_rewards
 

@@ -31,7 +31,7 @@ grid = Grid()
 
 GAME_UPDATE = pygame.USEREVENT
 
-pygame.time.set_timer(GAME_UPDATE, 50)
+pygame.time.set_timer(GAME_UPDATE, 20)
 
 pause = False
 
