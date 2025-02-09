@@ -12,24 +12,28 @@ import numpy as np
 import csv
 
 class Model:
-    def __init__(self, model = False):
-        #create a sequential model
-        self.model = keras.models.Sequential()
+    def __init__(self, model_path=None):
+        if model_path:
+            # Load the pre-trained model
+            self.model = keras.models.load_model(model_path)
+        else:
+            # Create a new sequential model
+            self.model = keras.models.Sequential()
 
-        #input layer to define the input shape
-        self.model.add(keras.Input(shape=(20, 10)))
+            # Input layer to define the input shape
+            self.model.add(keras.Input(shape=(20, 10)))
 
-        #convert each grid (20x10 array) to a 1D array
-        self.model.add(keras.layers.Flatten())
+            # Convert each grid (20x10 array) to a 1D array
+            self.model.add(keras.layers.Flatten())
 
-        #dense layers with bias_initializer set to zeros
-        self.model.add(keras.layers.Dense(100, kernel_initializer='RandomNormal', bias_initializer='zeros', activation="relu"))
-        self.model.add(keras.layers.Dense(50, kernel_initializer='RandomNormal', bias_initializer='zeros', activation="sigmoid"))
-        self.model.add(keras.layers.Dense(50, kernel_initializer='RandomNormal', bias_initializer='zeros', activation="tanh"))
+            # Dense layers with bias_initializer set to zeros
+            self.model.add(keras.layers.Dense(100, kernel_initializer='RandomNormal', bias_initializer='zeros', activation="relu"))
+            self.model.add(keras.layers.Dense(50, kernel_initializer='RandomNormal', bias_initializer='zeros', activation="sigmoid"))
+            self.model.add(keras.layers.Dense(50, kernel_initializer='RandomNormal', bias_initializer='zeros', activation="tanh"))
 
-        #output layer with bias_initializer set to zeros
-        self.model.add(keras.layers.Dense(19, bias_initializer='zeros', activation="softmax"))
-        
+            # Output layer with bias_initializer set to zeros
+            self.model.add(keras.layers.Dense(19, bias_initializer='zeros', activation="softmax"))
+
         self.hidden1 = self.model.layers[1]
         self.hidden2 = self.model.layers[2]
         self.hidden3 = self.model.layers[3]
@@ -242,4 +246,3 @@ class Model:
         std = np.std(rewards)
         normalized_rewards = (rewards - mean) / (std + 1e-10)  # Add a small value to avoid division by zero
         return normalized_rewards
-        
