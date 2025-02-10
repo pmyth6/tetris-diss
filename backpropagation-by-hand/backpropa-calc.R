@@ -36,13 +36,15 @@ softmax = function(z){
 }
 
 #Check the forward pass is correct
-weights.01 = convert_string_to_matrix(data$weights.layer.1[1], 20, 2)
-weights.02 = convert_string_to_matrix(data$weights.layer.2[1], 2, 2)
-weights.03 = convert_string_to_matrix(data$weights.layer.3[1], 2, 19)
+weights.01 = convert_string_to_matrix(data$weights.layer.1[2], 20, 2)
+weights.02 = convert_string_to_matrix(data$weights.layer.2[2], 2, 2)
+weights.03 = convert_string_to_matrix(data$weights.layer.3[2], 2, 19)
 
 grid = convert_gridstring_to_vector(data$grid[2])
 layer1 = grid%*%weights.01
+layer1 = pmax(0, layer1)
 layer2 = layer1%*%weights.02
+layer2 = 1/(1+exp(-layer2))
 layer3 = layer2%*%weights.03
 output.probs = softmax(layer3)
 action.index = which.max(output.probs)
@@ -52,5 +54,13 @@ action = actions[action.index]
 
 #Then we know the loss
 loss = data$loss[2]
+
+weights3.01 = convert_string_to_matrix(data$weights.layer.1[3], 20, 2)
+weights3.02 = convert_string_to_matrix(data$weights.layer.2[3], 2, 2)
+weights3.03 = convert_string_to_matrix(data$weights.layer.3[3], 2, 19)
+
+which(weights3.01 != weights.01)
+which(weights3.02 != weights.02)
+which(weights3.03 != weights.03)
 
 

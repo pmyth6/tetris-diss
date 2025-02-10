@@ -26,9 +26,9 @@ class Model:
         #self.model.add(keras.layers.Dense(20, kernel_initializer='RandomNormal', 
         #                                  activation="relu", use_bias=False))
         self.model.add(keras.layers.Dense(2, kernel_initializer='RandomNormal', 
-                                          activation="relu", use_bias=False))
+                                          activation="sigmoid", use_bias=False))
         self.model.add(keras.layers.Dense(2, kernel_initializer='RandomNormal', 
-                                          activation="relu", use_bias=False))
+                                          activation="tanh", use_bias=False))
 
         #output layer
         self.model.add(keras.layers.Dense(19, activation="softmax", 
@@ -102,34 +102,36 @@ class Model:
         return action
     
     def loss_fn(self, current_move, probabilities, action_index, action, score):
-        # Get the number of the row the block will be placed in
-        self.row = self.calculate_row_placement(action)
-        
-        # Calculate base loss based on the row
-        #base_loss = tf.floor((self.row-1.0)/2.0)
-        
-        # Calculate base loss as the squared row placement
-        base_loss = self.row**2
-        
-        # Get the probability of the chosen action
-        action_prob = probabilities[0, action_index]
-        
-        # If the model makes the same move twice - punish it
-        repeat_loss = 0
-        if self.previous_action == action:
-            repeat_loss = 10
-            
-        # Reward for an increase in score - will also punish when the score 
-        # decreases when a new game is initialised
-        # So also punishes for losing the game
-        score_change = score - self.previous_score
-        self.previous_score = score
-        
-        # Punish for leaving any gaps
-        self.gap = self.calculate_gap(action)
-        gap_loss = self.gap**3
+        # Calculate the loss for each action, multiply by the probability and sum
+        sum_loss = 0
 
-        return -(base_loss - action_prob/100000 + repeat_loss - score_change + gap_loss)
+        for i in range(19):
+            #Get the action
+            action = self.moves[int(i)]
+
+            # Get the number of the row the block will be placed in
+            self.row = self.calculate_row_placement(action)
+
+            # Calculate base loss as the squared row placement
+            base_loss = self.row**2
+            
+            # Get the probability of the action
+            action_prob = probabilities[0, i]
+            
+            # If the model makes the same move twice - punish it
+            repeat_loss = 0
+            if self.previous_action == action:
+                repeat_loss = 10
+            
+            # Reward if there is an increase in score due to that move?
+
+            # Punish for leaving any gaps
+            self.gap = self.calculate_gap(action)
+            gap_loss = self.gap**3
+
+            sum_loss += -(base_loss + repeat_loss - score + gap_loss)*action_prob
+
+        return sum_loss
     
     def calculate_row_placement(self, action):
         # 1 1
