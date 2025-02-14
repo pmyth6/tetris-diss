@@ -27,18 +27,18 @@ class Model:
             self.model.add(keras.layers.Flatten())
 
             # Dense layers with bias_initializer set to zeros
-            self.model.add(keras.layers.Dense(100, kernel_initializer='RandomNormal', bias_initializer='zeros', activation="relu"))
-            self.model.add(keras.layers.Dense(50, kernel_initializer='RandomNormal', bias_initializer='zeros', activation="sigmoid"))
-            self.model.add(keras.layers.Dense(50, kernel_initializer='RandomNormal', bias_initializer='zeros', activation="tanh"))
+            self.model.add(keras.layers.Dense(100, kernel_initializer='RandomNormal', activation="sigmoid"))
+            self.model.add(keras.layers.Dense(50, kernel_initializer='RandomNormal', activation="sigmoid"))
+            self.model.add(keras.layers.Dense(50, kernel_initializer='RandomNormal', activation="sigmoid"))
 
             # Output layer with bias_initializer set to zeros
-            self.model.add(keras.layers.Dense(19, bias_initializer='zeros', activation="softmax"))
+            self.model.add(keras.layers.Dense(19, activation="softmax"))
 
         self.hidden1 = self.model.layers[1]
         self.hidden2 = self.model.layers[2]
         self.hidden3 = self.model.layers[3]
 
-        self.optimizer = keras.optimizers.Adam(learning_rate=0.01)
+        self.optimizer = keras.optimizers.Adam(learning_rate=0.3)
         
         self.moves = ["h1", "h2", "h3", "h4", "h5", "h6", "h7", "h8", "h9",
                      "v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8", "v9", "v0"]
@@ -53,7 +53,7 @@ class Model:
         self.previous_action = "h5"
 
         # Number of episodes to play before updating the model
-        self.no_episodes = 10
+        self.no_episodes = 1
         self.grads = []
         self.rewards = []
         self.all_rewards = []
@@ -61,7 +61,7 @@ class Model:
         self.count = 0
 
         # Set discount factor
-        self.discount_factor = 0.99
+        self.discount_factor = 0.1
     
     def model_play(self, current_move, score, game_no):
         # Convert input to tensor if it's not already
@@ -73,10 +73,11 @@ class Model:
             probabilities = self.model(current_move, training=True)
             
             # Sample action from probabilities
-            log_probs = tf.math.log(probabilities)
-            action_index = tf.random.categorical(log_probs, 1)[0][0]
+            #log_probs = tf.math.log(probabilities)
+            #action_index = tf.random.categorical(log_probs, 1)[0][0]
 
             # Get the selected action
+            action_index = np.argmax(probabilities)
             action = self.moves[int(action_index)]
             
             # Calculate loss
@@ -105,7 +106,7 @@ class Model:
                 # Apply gradients
                 for var_index, var in enumerate(self.model.trainable_variables):
                     mean_gradients = np.mean([self.all_grads[move][var_index] * self.all_rewards[move] for move in range(len(self.all_rewards))], axis=0)
-                    self.optimizer = keras.optimizers.Adam(learning_rate=0.01)
+                    self.optimizer = keras.optimizers.Adam(learning_rate=0.3)
                     self.optimizer.apply_gradients([(mean_gradients, var)])
 
                 # Reset rewards
