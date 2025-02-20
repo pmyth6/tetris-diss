@@ -60,6 +60,7 @@ class Model:
         self.previous_action = "v1"
         
         # Save to CSV
+        self.count = 0
         grid = [[0 for j in range(10)] for i in range(5)]
         tensor = tf.constant(grid, dtype=tf.float32)
         current_move = tf.expand_dims(tensor, axis=0)
@@ -71,6 +72,8 @@ class Model:
         self.save_to_csv(current_move, action, row, self.gap, loss, game_no, score)
     
     def model_play(self, current_move, score, game_no):
+        self.count += 1
+        print(self.count)
         # Convert input to tensor if it's not already
         current_move = tf.convert_to_tensor(current_move, dtype=tf.float32)
         
@@ -99,7 +102,6 @@ class Model:
         # Apply gradients
         self.optimizer.apply_gradients(zip(grads, self.model.trainable_variables))
         
-        print(game_no)
         # Save to CSV
         self.save_to_csv(current_move, action, self.row, self.gap, loss, game_no, score)
         

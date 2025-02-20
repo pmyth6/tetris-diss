@@ -7,8 +7,8 @@ iter = floor(obs/ind)
 av.score = 0
 var.score = 0
 for (i in 1:iter){
-  av.score[i] = mean(data$score[i*ind-500:i*ind]) #mean
-  var.score[i] = var(data$score[i*ind-500:i*ind]) #variance
+  av.score[i] = mean(data$score[(i*ind-500):(i*ind)]) #mean
+  var.score[i] = var(data$score[(i*ind-500):(i*ind)]) #variance
 }
 
 #Calculate the v-h ratio and no. gaps over every (39,500-40,000) moves
@@ -17,7 +17,7 @@ gaps = 0
 for (i in 1:iter){
   v = 0
   g = 0
-  for (j in i*ind-500:i*ind){
+  for (j in (i*ind-500):(i*ind)){
     if (substr(data$move[j], 1, 1) == "v"){
       v = v+1
     }
