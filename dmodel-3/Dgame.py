@@ -62,84 +62,86 @@ class Game:
             self.grid.grid[position.row][position.column] = 1 #when blocks lock they are light grey
         self.current_block = self.next_block
         self.next_block = DBlock()
-        #get grid
-        input_grid = self.grid.get_grid()
-        print(input_grid)
-        #get move
-        next_move = self.model.model_play(input_grid, self.score, self.game_no)
-        #interpret and execute move
-        enumerate(next_move)
-        if next_move[0] == "h":
-            if next_move[1] == "1" and self.game_over == False:
-                self.move_left()
-                self.move_left()
-                self.move_left()
-                self.move_left()
-            if next_move[1] == "2":
-                self.move_left()
-                self.move_left()
-                self.move_left()
-            if next_move[1] == "3":
-                self.move_left()
-                self.move_left()
-            if next_move[1] == "4":
-                self.move_left()
-            if next_move[1] == "6":
-                self.move_right()
-            if next_move[1] == "7":
-                self.move_right()
-                self.move_right()
-            if next_move[1] == "8":
-                self.move_right()
-                self.move_right()
-                self.move_right()
-            if next_move[1] == "9":
-                self.move_right()
-                self.move_right()
-                self.move_right()
-                self.move_right()
-        if next_move[0] == "v" and self.game_over == False:
-            self.rotate()
-            if next_move[1] == "1":
-                self.move_left()
-                self.move_left()
-                self.move_left()
-                self.move_left()
-                self.move_left()
-            if next_move[1] == "2":
-                self.move_left()
-                self.move_left()
-                self.move_left()
-                self.move_left()
-            if next_move[1] == "3":
-                self.move_left()
-                self.move_left()
-                self.move_left()
-            if next_move[1] == "4":
-                self.move_left()
-                self.move_left()
-            if next_move[1] == "5":
-                self.move_left()
-            if next_move[1] == "7":
-                self.move_right()
-            if next_move[1] == "8":
-                self.move_right()
-                self.move_right()
-            if next_move[1] == "9":
-                self.move_right()
-                self.move_right()
-                self.move_right()
-            if next_move[1] == "0":
-                self.move_right()
-                self.move_right()
-                self.move_right()
-                self.move_right()
-        rows_cleared = self.grid.clear_full_rows()
-        self.update_score(rows_cleared, 0)
         #self.grid.print_grid() #prints the grid to the console
         #if self.block_fits() == False:
-        if self.grid.is_row_empty(14) == False:
+        if self.grid.is_row_empty(15) == False:
             self.game_over = True
+        if self.game_over == False:
+            #get grid
+            input_grid = self.grid.get_grid()
+            print(input_grid)
+            #get move
+            next_move = self.model.model_play(input_grid, self.score, self.game_no)
+            #interpret and execute move
+            enumerate(next_move)
+            if next_move[0] == "h":
+                if next_move[1] == "1" and self.game_over == False:
+                    self.move_left()
+                    self.move_left()
+                    self.move_left()
+                    self.move_left()
+                if next_move[1] == "2":
+                    self.move_left()
+                    self.move_left()
+                    self.move_left()
+                if next_move[1] == "3":
+                    self.move_left()
+                    self.move_left()
+                if next_move[1] == "4":
+                    self.move_left()
+                if next_move[1] == "6":
+                    self.move_right()
+                if next_move[1] == "7":
+                    self.move_right()
+                    self.move_right()
+                if next_move[1] == "8":
+                    self.move_right()
+                    self.move_right()
+                    self.move_right()
+                if next_move[1] == "9":
+                    self.move_right()
+                    self.move_right()
+                    self.move_right()
+                    self.move_right()
+            if next_move[0] == "v" and self.game_over == False:
+                self.rotate()
+                if next_move[1] == "1":
+                    self.move_left()
+                    self.move_left()
+                    self.move_left()
+                    self.move_left()
+                    self.move_left()
+                if next_move[1] == "2":
+                    self.move_left()
+                    self.move_left()
+                    self.move_left()
+                    self.move_left()
+                if next_move[1] == "3":
+                    self.move_left()
+                    self.move_left()
+                    self.move_left()
+                if next_move[1] == "4":
+                    self.move_left()
+                    self.move_left()
+                if next_move[1] == "5":
+                    self.move_left()
+                if next_move[1] == "7":
+                    self.move_right()
+                if next_move[1] == "8":
+                    self.move_right()
+                    self.move_right()
+                if next_move[1] == "9":
+                    self.move_right()
+                    self.move_right()
+                    self.move_right()
+                if next_move[1] == "0":
+                    self.move_right()
+                    self.move_right()
+                    self.move_right()
+                    self.move_right()
+            rows_cleared = self.grid.clear_full_rows()
+            self.update_score(rows_cleared, 0)
+        
             
     def reset(self):
         self.grid.reset()

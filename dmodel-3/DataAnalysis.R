@@ -5,8 +5,10 @@ obs = length(data[,1])
 ind = 40000
 iter = floor(obs/ind)
 av.score = 0
+var.score = 0
 for (i in 1:iter){
-  av.score[i] = mean(data$score[i*ind-500:i*ind])
+  av.score[i] = mean(data$score[i*ind-500:i*ind]) #mean
+  var.score[i] = var(data$score[i*ind-500:i*ind]) #variance
 }
 
 #Calculate the v-h ratio and no. gaps over every (39,500-40,000) moves

@@ -67,7 +67,8 @@ class Model:
         loss = tf.constant(0)
         game_no = 0
         score = 0
-        self.save_to_csv(current_move, action, self.row, self.gap, loss, game_no, score)
+        row = 1
+        self.save_to_csv(current_move, action, row, self.gap, loss, game_no, score)
     
     def model_play(self, current_move, score, game_no):
         # Convert input to tensor if it's not already
@@ -98,6 +99,7 @@ class Model:
         # Apply gradients
         self.optimizer.apply_gradients(zip(grads, self.model.trainable_variables))
         
+        print(game_no)
         # Save to CSV
         self.save_to_csv(current_move, action, self.row, self.gap, loss, game_no, score)
         
@@ -148,9 +150,9 @@ class Model:
         # Punish for losing a game
         # Values ranging 0 to 100
         game_loss = 0
-        if action[0] == "v" and self.row >=5:
+        if action[0] == "v" and self.row >=4:
             game_loss = 100
-        if action[0] == "h" and self.row == 6:
+        if action[0] == "h" and self.row == 5:
             game_loss = 100
 
         # Punish is -, reward is +
@@ -164,7 +166,7 @@ class Model:
             col = int(action[1])
             col -= 1 # Zero based indexing
             
-            row = 1
+            row = 4
             while self.current_grid[0, 5-row, col] == 0 and self.current_grid[0, 5-row, col+1] == 0:
                 row -= 1
                 if row == 0:
@@ -178,7 +180,7 @@ class Model:
                 col = 10
             col -=1 # Zero based indexing
             
-            row = 1
+            row = 4
             while self.current_grid[0, 5-row, col] == 0 and self.current_grid[0, 5-row-1, col] == 0:
                 row -= 1
                 if row == 0:
