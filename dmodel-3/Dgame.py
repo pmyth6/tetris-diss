@@ -22,12 +22,12 @@ class Game:
         self.model = Model()
         self.game_no = 0
 
-        self.rotate()
-        self.move_left()
-        self.move_left()
-        self.move_left()
-        self.move_left()
-        self.move_left()
+        first_move = self.grid.get_grid()
+        first_move = first_move.numpy().flatten()
+        first_move = first_move.reshape(5, 10)
+        first_move[4,0] = 1
+        first_move[3,0] = 1
+        self.grid.set_grid(first_move)
         
     def update_score(self, lines_cleared, move_down_points):
         if lines_cleared == 1:
@@ -57,91 +57,22 @@ class Game:
             self.lock_block()
             
     def lock_block(self):
-        tiles = self.current_block.get_cell_positions()
-        for position in tiles:
-            self.grid.grid[position.row][position.column] = 1 #when blocks lock they are light grey
-        self.current_block = self.next_block
-        self.next_block = DBlock()
-        #self.grid.print_grid() #prints the grid to the console
-        #if self.block_fits() == False:
-        if self.grid.is_row_empty(15) == False:
+        if self.grid.is_row_empty(0) == False:
             self.game_over = True
         if self.game_over == False:
             #get grid
             input_grid = self.grid.get_grid()
             print(input_grid)
-            #get move
-            next_move = self.model.model_play(input_grid, self.score, self.game_no)
-            #interpret and execute move
-            enumerate(next_move)
-            if next_move[0] == "h":
-                if next_move[1] == "1" and self.game_over == False:
-                    self.move_left()
-                    self.move_left()
-                    self.move_left()
-                    self.move_left()
-                if next_move[1] == "2":
-                    self.move_left()
-                    self.move_left()
-                    self.move_left()
-                if next_move[1] == "3":
-                    self.move_left()
-                    self.move_left()
-                if next_move[1] == "4":
-                    self.move_left()
-                if next_move[1] == "6":
-                    self.move_right()
-                if next_move[1] == "7":
-                    self.move_right()
-                    self.move_right()
-                if next_move[1] == "8":
-                    self.move_right()
-                    self.move_right()
-                    self.move_right()
-                if next_move[1] == "9":
-                    self.move_right()
-                    self.move_right()
-                    self.move_right()
-                    self.move_right()
-            if next_move[0] == "v" and self.game_over == False:
-                self.rotate()
-                if next_move[1] == "1":
-                    self.move_left()
-                    self.move_left()
-                    self.move_left()
-                    self.move_left()
-                    self.move_left()
-                if next_move[1] == "2":
-                    self.move_left()
-                    self.move_left()
-                    self.move_left()
-                    self.move_left()
-                if next_move[1] == "3":
-                    self.move_left()
-                    self.move_left()
-                    self.move_left()
-                if next_move[1] == "4":
-                    self.move_left()
-                    self.move_left()
-                if next_move[1] == "5":
-                    self.move_left()
-                if next_move[1] == "7":
-                    self.move_right()
-                if next_move[1] == "8":
-                    self.move_right()
-                    self.move_right()
-                if next_move[1] == "9":
-                    self.move_right()
-                    self.move_right()
-                    self.move_right()
-                if next_move[1] == "0":
-                    self.move_right()
-                    self.move_right()
-                    self.move_right()
-                    self.move_right()
-            rows_cleared = self.grid.clear_full_rows()
-            self.update_score(rows_cleared, 0)
-        
+            #get move and grid after move
+            next_move, grid_after_move, score = self.model.model_play(input_grid, self.game_no, self.score)
+            #set grid
+            self.grid.set_grid(grid_after_move)
+            #update score
+            self.score += score
+            #set current block to next block
+            self.current_block = self.next_block
+            #set next block to new block
+            self.next_block = DBlock() 
             
     def reset(self):
         self.grid.reset()
@@ -152,17 +83,17 @@ class Game:
         self.game_no += 1
         self.game_over = False
 
-        self.rotate()
-        self.move_left()
-        self.move_left()
-        self.move_left()
-        self.move_left()
-        self.move_left()
+        first_move = self.grid.get_grid()
+        first_move = first_move.numpy().flatten()
+        first_move = first_move.reshape(5, 10)
+        first_move[4,0] = 1
+        first_move[3,0] = 1
+        self.grid.set_grid(first_move)
             
     def block_fits(self):
         tiles = self.current_block.get_cell_positions()
         for tile in tiles:
-            if self.grid.is_empty(tile.row, tile.column) == False and self.grid.is_row_full(19) == False:
+            if self.grid.is_empty(tile.row, tile.column) == False and self.grid.is_row_full(4) == False:
                 return False
         self.model.model.save('model.keras')
         return True

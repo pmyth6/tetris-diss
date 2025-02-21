@@ -15,12 +15,13 @@ from Dcolors import Colors
 
 class Grid:
     def __init__(self):
-        self.num_rows = 20
+        self.num_rows = 5
         self.num_cols = 10
         self.cell_size = 30
         #creating a 10x20 grid (list of lists) of 0s:
         self.grid = [[0 for j in range(self.num_cols)] for i in range(self.num_rows)]
         self.colors = Colors.get_cell_colors()
+        self.backup_grid = self.grid
         
     def print_grid(self):
         for row in range(self.num_rows):
@@ -30,10 +31,16 @@ class Grid:
             
     def get_grid(self):
         #return the grid in the correct format for the model
-        grid = self.grid[-5:]
-        tensor = tf.constant(grid, dtype=tf.float32)
+        tensor = tf.constant(self.grid, dtype=tf.float32)
         input_tensor = tf.expand_dims(tensor, axis=0)
         return input_tensor
+    
+    def set_grid(self, grid):
+        self.backup_grid = self.grid
+        self.grid = grid
+
+    def unset_grid(self):
+        self.grid = self.backup_grid
             
     def save_grid_as_image(self, filename):
         image_data = np.array(self.grid, dtype=np.uint8) *255 #so that 0 is black and 1 is white

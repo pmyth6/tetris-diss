@@ -11,6 +11,8 @@ from tensorflow import keras
 import numpy as np
 import csv
 
+from Dgrid import Grid
+
 class Model:
     def __init__(self):
         #create a sequential model
@@ -55,26 +57,15 @@ class Model:
         self.row = 0
         self.gap = 0
         
-        self.previous_score = 0
-        
         self.previous_action = "v1"
-        
-        # Save to CSV
+
         self.count = 0
-        grid = [[0 for j in range(10)] for i in range(5)]
-        tensor = tf.constant(grid, dtype=tf.float32)
-        current_move = tf.expand_dims(tensor, axis=0)
-        action = "v1"
-        loss = tf.constant(0)
-        game_no = 0
-        score = 0
-        row = 1
-        self.save_to_csv(current_move, action, row, self.gap, loss, game_no, score)
+
     
-    def model_play(self, current_move, score, game_no):
+    def model_play(self, current_move, game_no, game_score):
         self.count += 1
         print(self.count)
-        # Convert input to tensor if it's not already
+        # Convert input to tensor
         current_move = tf.convert_to_tensor(current_move, dtype=tf.float32)
         
         self.current_grid = current_move
@@ -94,24 +85,24 @@ class Model:
             action = self.moves[int(action_index)]
             
             # Calculate loss
-            loss = self.loss_fn(current_move, probabilities, action_index, action, score)
+            loss, grid_after_action, score = self.loss_fn(current_move, probabilities, action_index, action)
             
         # Calculate gradients
         grads = tape.gradient(loss, self.model.trainable_variables)
         
         # Apply gradients
         self.optimizer.apply_gradients(zip(grads, self.model.trainable_variables))
-        
-        # Save to CSV
-        self.save_to_csv(current_move, action, self.row, self.gap, loss, game_no, score)
-        
+
         # Set current move as previous move for future use
         self.previous_action = action
         
-        return action
+        # Save to CSV
+        self.save_to_csv(grid_after_action, action, self.row, self.gap, loss, game_no, game_score)
+        
+        return action, grid_after_action, score
     
 
-    def loss_fn(self, current_move, probabilities, action_index, action, score):
+    def loss_fn(self, current_move, probabilities, action_index, action):
         # Get the number of the row the block will be placed in
         self.row = self.calculate_row_placement(action)
 
@@ -129,11 +120,36 @@ class Model:
             repeat_loss = 10
             
         # Reward for an increase in score
-        # Values ranging 0 to 100
-        score_loss = score - self.previous_score
-        if score_loss < 0:
-            score_loss = 0 
-        self.previous_score = score
+        # Values ranging 0 to 800 depending on the number of lines cleared
+        score_loss = 0
+        grid_instance = Grid()
+        predicted_grid = current_move.numpy().flatten()
+        predicted_grid = predicted_grid.reshape(5, 10)
+        # Apply the chosen action to the grid
+        if action[0] == "v":
+            if int(action[1]) > 0:
+                predicted_grid[5-self.row, int(action[1])-1] = 1
+                predicted_grid[5-self.row-1, int(action[1])-1] = 1
+            if int(action[1]) == 0:
+                predicted_grid[5-self.row, 9] = 1
+                predicted_grid[5-self.row-1, 9] = 1
+        if action[0] == "h":
+            predicted_grid[5-self.row, int(action[1])-1] = 1
+            predicted_grid[5-self.row, int(action[1])] = 1
+        # Set the grid to the predicted grid
+        grid_instance.set_grid(predicted_grid)
+        # Get the number of lines cleared
+        lines_cleared = 0
+        lines_cleared = grid_instance.clear_full_rows()
+        # Calculate the score loss
+        if lines_cleared == 1:
+            score_loss = 100
+        if lines_cleared == 2:
+            score_loss = 300
+        if lines_cleared == 3:
+            score_loss = 500
+        if lines_cleared == 4:
+            score_loss = 800
         
         # Punish for leaving any gaps
         # Values ranging 0 to 64
@@ -159,7 +175,7 @@ class Model:
 
         # Punish is -, reward is +
         return (-base_loss + action_prob/100000 - repeat_loss + score_loss - 
-                 gap_loss + v_loss - game_loss)
+                 gap_loss + v_loss - game_loss), grid_instance.grid, score_loss
 
     
     def calculate_row_placement(self, action):
@@ -233,7 +249,7 @@ class Model:
         weights2 = self.hidden2.get_weights()
         weights3 = self.hidden3.get_weights()
         
-        row = [current_move.numpy().flatten(), action, no_rows, gap, loss.numpy(), 
+        row = [current_move, action, no_rows, gap, loss.numpy(), 
                score, no_games, weights1, weights2, weights3]
         with open(filename, mode='a', newline='') as file:
             writer = csv.writer(file)
