@@ -28,4 +28,4 @@ ggplot(percentages, aes(x = batch, y = match_percent)) +
        y = "Percentage Match") +
   theme_bw()
 
-ggsave(filename = "Plots/40neuronlayers.png", plot = last_plot(), width = 8, height = 6, dpi = 300)
+ggsave(filename = "Plots/30neuronlayers2LeakyRelu.png", plot = last_plot(), width = 8, height = 6, dpi = 300)
