@@ -8,6 +8,7 @@ Created on Mon Jan 20 12:14:24 2025
 
 import tensorflow as tf
 from tensorflow import keras
+from tensorflow.keras.layers import LeakyReLU
 import numpy as np
 import csv
 
@@ -15,6 +16,7 @@ from Dgrid import Grid
 
 class Model:
     def __init__(self):
+        
         #create a sequential model
         self.model = keras.models.Sequential()
 
@@ -25,23 +27,23 @@ class Model:
         self.model.add(keras.layers.Flatten())
 
         #dense layers
-        self.model.add(keras.layers.Dense(20, kernel_initializer='RandomNormal', 
+        self.model.add(keras.layers.Dense(20, kernel_initializer='he_normal', 
+                                          activation=keras.layers.LeakyReLU(negative_slope=0.01), use_bias=False))
+        self.model.add(keras.layers.Dense(20, kernel_initializer='glorot_normal', 
                                           activation="sigmoid", use_bias=False))
-        self.model.add(keras.layers.Dense(20, kernel_initializer='RandomNormal', 
-                                          activation="sigmoid", use_bias=False))
-        self.model.add(keras.layers.Dense(20, kernel_initializer='RandomNormal', 
+        self.model.add(keras.layers.Dense(20, kernel_initializer='glorot_normal', 
                                           activation="sigmoid", use_bias=False))
 
         #output layer
         self.model.add(keras.layers.Dense(19, activation="softmax", 
                                           use_bias=False))
 
-        '''
+        
         #load previous model
-        self.model = keras.models.load_model("model.keras")
-        '''
+        #self.model = keras.models.load_model("model.keras", custom_objects={"LeakyReLU": LeakyReLU})
+        
 
-        self.optimizer = keras.optimizers.Adam(learning_rate=0.1)
+        self.optimizer = keras.optimizers.Adam(learning_rate=0.0008)
         
         self.moves = ["v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8", "v9", "v0",
                       "h1", "h2", "h3", "h4", "h5", "h6", "h7", "h8", "h9"]
@@ -60,12 +62,12 @@ class Model:
         self.count += 1
         print(self.count)
 
-        # Adjust learning rate every 100,000 moves
-        if self.count % 1000 == 0:
-            current_lr = self.optimizer.learning_rate.numpy()
-            new_lr = current_lr * 0.9
-            self.optimizer.learning_rate.assign(new_lr)
-            print(f"Updated learning rate to: {new_lr}")
+        # # Adjust learning rate every 100,000 moves
+        # if self.count % 1000 == 0:
+        #     current_lr = self.optimizer.learning_rate.numpy()
+        #     new_lr = current_lr * 0.9
+        #     self.optimizer.learning_rate.assign(new_lr)
+        #     print(f"Updated learning rate to: {new_lr}")
 
         # Convert input to tensor
         current_move = tf.convert_to_tensor(current_move, dtype=tf.float32)
@@ -117,9 +119,9 @@ class Model:
         
         # Punish if the model makes the same move twice
         # Values ranging 0 to 10
-        # repeat_loss = 0
-        # if self.previous_action == action:
-            # repeat_loss = 10
+        repeat_loss = 0
+        if self.previous_action == action:
+            repeat_loss = 10
             
         # Reward for an increase in score
         # Values ranging 0 to 800 depending on the number of lines cleared
@@ -155,31 +157,31 @@ class Model:
         
         # Punish for leaving any gaps
         # Values ranging 0 to 64
-        # self.gap = self.calculate_gap(action)
-        # gap_loss = self.gap**3 
+        self.gap = self.calculate_gap(action)
+        gap_loss = self.gap**3 
 
         # Reward for vertical moves (higher reward for row 1)
         # Values ranging 25 to 50
-        # if action[0] == "v":
-            # v_loss = 25
-            # if self.row == 1:
-                # v_loss = 50 
-        # else:
-            # v_loss = 0
+        if action[0] == "v":
+            v_loss = 25
+            if self.row == 1:
+                v_loss = 50 
+        else:
+            v_loss = 0
 
         # Punish for losing a game
         # Values ranging 0 to 100
-        # game_loss = 0
-        # if action[0] == "v" and self.row >=4:
-            # game_loss = 100
-        # if action[0] == "h" and self.row == 5:
-            # game_loss = 100
+        game_loss = 0
+        if action[0] == "v" and self.row >=4:
+            game_loss = 100
+        if action[0] == "h" and self.row == 5:
+            game_loss = 100
 
         # Punish is -, reward is +
-        # return (-base_loss + action_prob/100000 - repeat_loss + score_loss - 
-                 # gap_loss + v_loss - game_loss), grid_instance.grid, score_loss
+        return (-base_loss + action_prob/100000 - repeat_loss + score_loss - 
+                 gap_loss + v_loss - game_loss), grid_instance.grid, score_loss
 
-        return (-base_loss + action_prob/100000 + score_loss), grid_instance.grid, score_loss
+        #return (-base_loss + action_prob/100000 + score_loss), grid_instance.grid, score_loss
 
     
     def calculate_row_placement(self, action):
@@ -231,7 +233,7 @@ class Model:
             
 
     def save_to_csv(self, action, no_rows, gap, loss, no_games, score):
-        filename = "log.csv"
+        filename = "log-lrelusigsig-lr0008.csv"
         
         file_exists = False
         try:
@@ -251,3 +253,7 @@ class Model:
         with open(filename, mode='a', newline='') as file:
             writer = csv.writer(file)
             writer.writerow(row)
+
+        # Save the model
+        model_filename = "model-lrelusigsig-lr0008.keras"
+        self.model.save(model_filename)

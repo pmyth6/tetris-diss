@@ -4,7 +4,7 @@ import numpy as np
 import os
 
 # File path
-file_path = 'log.csv'
+file_path = 'log-lrelusigsig.csv'
 
 # Calculate file size in GB
 file_size_gb = os.path.getsize(file_path) / (1024**3)
@@ -17,6 +17,7 @@ row_placement_mean = []
 gap_left_mean = []
 v_move_counts = []
 row_markers = []
+highest_scores = []
 
 current_score_sum = 0
 current_row_placement_sum = 0
@@ -24,6 +25,7 @@ current_gap_left_sum = 0
 current_v_move_count = 0
 current_count = 0
 total_rows_processed = 0
+current_highest_score = float('-inf')  # Initialize to negative infinity
 
 # For tracking repeated moves
 last_move = None
@@ -32,7 +34,7 @@ repeat_counts = []
 repeat_positions = []
 
 # Create output directory for plots
-output_dir = 'analysis_plots'
+output_dir = 'analysis_plots1'
 os.makedirs(output_dir, exist_ok=True)
 
 # Process the file in chunks
@@ -69,9 +71,10 @@ for chunk in pd.read_csv(file_path, chunksize=chunk_size):
     current_gap_left_sum += chunk['gap left'].sum()
     current_count += len(chunk)
     total_rows_processed += len(chunk)
+    current_highest_score = max(current_highest_score, chunk['score'].max())
     
-    # Calculate and store means every 500,000 rows
-    if current_count >= 500000:
+    # Calculate and store means every 5,000 rows
+    if current_count >= 5000:
         # Calculate means
         mean_score = current_score_sum / current_count
         mean_row_placement = current_row_placement_sum / current_count
@@ -84,6 +87,7 @@ for chunk in pd.read_csv(file_path, chunksize=chunk_size):
         gap_left_mean.append(mean_gap_left)
         v_move_counts.append(v_move_ratio)
         row_markers.append(total_rows_processed)
+        highest_scores.append(current_highest_score)
         
         print(f"Processed {total_rows_processed:,} rows:")
         print(f"  Mean score: {mean_score:.4f}")
@@ -97,6 +101,7 @@ for chunk in pd.read_csv(file_path, chunksize=chunk_size):
         current_gap_left_sum = 0
         current_v_move_count = 0
         current_count = 0
+        current_highest_score = float('-inf')
 
 # Check if there's a final repeat sequence at the end of the file
 if current_repeat_count > 0:
@@ -109,7 +114,7 @@ plt.figure(figsize=(20, 15))
 # Plot mean scores in combined view
 plt.subplot(3, 2, 1)
 plt.plot(row_markers, scores_mean, marker='o', linestyle='-')
-plt.title('Mean Score Every 500,000 Rows')
+plt.title('Mean Score Every 5,000 Rows')
 plt.xlabel('Row Number')
 plt.ylabel('Mean Score')
 plt.grid(True)
@@ -117,7 +122,7 @@ plt.grid(True)
 # Plot mean row placements in combined view
 plt.subplot(3, 2, 2)
 plt.plot(row_markers, row_placement_mean, marker='o', linestyle='-', color='green')
-plt.title('Mean Row Placement Every 500,000 Rows')
+plt.title('Mean Row Placement Every 5,000 Rows')
 plt.xlabel('Row Number')
 plt.ylabel('Mean Row Placement')
 plt.grid(True)
@@ -125,7 +130,7 @@ plt.grid(True)
 # Plot mean gap left in combined view
 plt.subplot(3, 2, 3)
 plt.plot(row_markers, gap_left_mean, marker='o', linestyle='-', color='purple')
-plt.title('Mean Gap Left Every 500,000 Rows')
+plt.title('Mean Gap Left Every 5,000 Rows')
 plt.xlabel('Row Number')
 plt.ylabel('Mean Gap Left')
 plt.grid(True)
@@ -133,7 +138,7 @@ plt.grid(True)
 # Plot V-move ratio in combined view
 plt.subplot(3, 2, 4)
 plt.plot(row_markers, v_move_counts, marker='o', linestyle='-', color='orange')
-plt.title('Ratio of V-Moves Every 500,000 Rows')
+plt.title('Ratio of V-Moves Every 5,000 Rows')
 plt.xlabel('Row Number')
 plt.ylabel('V-Move Ratio')
 plt.grid(True)
@@ -182,7 +187,7 @@ plt.close()
 # 1. Mean Score Plot
 plt.figure(figsize=(12, 8))
 plt.plot(row_markers, scores_mean, marker='o', linestyle='-', color='blue', linewidth=2)
-plt.title('Mean Score Every 500,000 Rows', fontsize=16)
+plt.title('Mean Score Every 5,000 Rows', fontsize=16)
 plt.xlabel('Row Number', fontsize=14)
 plt.ylabel('Mean Score', fontsize=14)
 plt.grid(True)
@@ -199,7 +204,7 @@ plt.close()
 # 2. Mean Row Placement Plot
 plt.figure(figsize=(12, 8))
 plt.plot(row_markers, row_placement_mean, marker='o', linestyle='-', color='green', linewidth=2)
-plt.title('Mean Row Placement Every 500,000 Rows', fontsize=16)
+plt.title('Mean Row Placement Every 5,000 Rows', fontsize=16)
 plt.xlabel('Row Number', fontsize=14)
 plt.ylabel('Mean Row Placement', fontsize=14)
 plt.grid(True)
@@ -216,7 +221,7 @@ plt.close()
 # 3. Mean Gap Left Plot
 plt.figure(figsize=(12, 8))
 plt.plot(row_markers, gap_left_mean, marker='o', linestyle='-', color='purple', linewidth=2)
-plt.title('Mean Gap Left Every 500,000 Rows', fontsize=16)
+plt.title('Mean Gap Left Every 5,000 Rows', fontsize=16)
 plt.xlabel('Row Number', fontsize=14)
 plt.ylabel('Mean Gap Left', fontsize=14)
 plt.grid(True)
@@ -233,7 +238,7 @@ plt.close()
 # 4. V-Move Ratio Plot
 plt.figure(figsize=(12, 8))
 plt.plot(row_markers, v_move_counts, marker='o', linestyle='-', color='orange', linewidth=2)
-plt.title('Ratio of V-Moves Every 500,000 Rows', fontsize=16)
+plt.title('Ratio of V-Moves Every 5,000 Rows', fontsize=16)
 plt.xlabel('Row Number', fontsize=14)
 plt.ylabel('V-Move Ratio', fontsize=14)
 plt.grid(True)
@@ -287,6 +292,23 @@ plt.tight_layout()
 norm_plot_path = os.path.join(output_dir, 'normalized_comparison_plot.png')
 plt.savefig(norm_plot_path, dpi=300)
 print(f"Normalized comparison plot saved as '{norm_plot_path}'")
+plt.close()
+
+# Plot highest scores
+plt.figure(figsize=(12, 8))
+plt.plot(row_markers, highest_scores, marker='o', linestyle='-', color='red', linewidth=2)
+plt.title('Highest Score Every 5,000 Rows', fontsize=16)
+plt.xlabel('Row Number', fontsize=14)
+plt.ylabel('Highest Score', fontsize=14)
+plt.grid(True)
+# Add data point annotations
+for i, (x, y) in enumerate(zip(row_markers, highest_scores)):
+    plt.annotate(f"{y:.4f}", (x, y), textcoords="offset points", 
+                 xytext=(0,10), ha='center', fontsize=12)
+plt.tight_layout()
+highest_score_plot_path = os.path.join(output_dir, 'highest_score_plot.png')
+plt.savefig(highest_score_plot_path, dpi=300)
+print(f"Highest score plot saved as '{highest_score_plot_path}'")
 plt.close()
 
 # Save results to CSV
