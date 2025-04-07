@@ -7,15 +7,15 @@ import csv
 model = keras.models.Sequential()
 model.add(keras.Input(shape=(2, 10)))
 model.add(keras.layers.Flatten())
-model.add(keras.layers.Dense(30, kernel_initializer='he_normal', 
+model.add(keras.layers.Dense(50, kernel_initializer='he_normal', 
                                     activation=keras.layers.LeakyReLU(alpha=0.01), use_bias=False))
-model.add(keras.layers.Dense(30, kernel_initializer='he_normal', 
-                                    activation=keras.layers.LeakyReLU(alpha=0.01), use_bias=False))
-model.add(keras.layers.Dense(30, kernel_initializer='glorot_normal', 
+model.add(keras.layers.Dense(50, kernel_initializer='glorot_normal', 
+                                    activation="sigmoid", use_bias=False))
+model.add(keras.layers.Dense(50, kernel_initializer='glorot_normal', 
                                     activation="sigmoid", use_bias=False))
 model.add(keras.layers.Dense(19, activation="softmax", 
                                     use_bias=False))
-optimizer = keras.optimizers.Adam(learning_rate=0.008)
+optimizer = keras.optimizers.Adam(learning_rate=0.01)
 
 # Allocate the moves
 moves = ["v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8", "v9", "v0", 
@@ -69,10 +69,10 @@ while True:
     optimizer.apply_gradients(zip(grads, model.trainable_weights))
 
     # Save the model
-    model.save("model.keras")
+    model.save("GS50N01LR.keras")
 
     # Save to csv
-    filename = "log.csv"
+    filename = "GS50N01LR.csv"
     file_exists = False
     try:
         with open(filename, 'r'):

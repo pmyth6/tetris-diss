@@ -2,7 +2,7 @@ library(randomcoloR)
 library(ggplot2)
 library(dplyr)
 
-data = read.csv("log.csv") # Load your dataset
+data = read.csv("GS50N01LR.csv") # Load your dataset
 n = length(data$probability)
 
 # Find rows where the AI plays the wrong move
@@ -28,4 +28,4 @@ ggplot(percentages, aes(x = batch, y = match_percent)) +
        y = "Percentage Match") +
   theme_bw()
 
-ggsave(filename = "Plots/30neuronlayers2LeakyRelu.png", plot = last_plot(), width = 8, height = 6, dpi = 300)
+ggsave(filename = "Plots/GS50N01LR.png", plot = last_plot(), width = 8, height = 6, dpi = 300)
