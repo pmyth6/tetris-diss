@@ -3,7 +3,7 @@ library(ggplot2)
 library(dplyr)
 
 # Load your dataset
-data = read.csv("log.csv")
+data = read.csv("GS80N01LR.csv")
 n = length(data$probability)
 
 mismatched_rows <- which((data$move1 != data$scenario_no1 | data$move2 != data$scenario_no2) & (data$move1 != data$scenario_no2 | data$move2 != data$scenario_no1))  
@@ -28,4 +28,4 @@ ggplot(percentages, aes(x = batch, y = match_percent)) +
        y = "Percentage Match") +
   theme_bw()
 
-ggsave(filename = "Plots/100neuronlayersLR00081LeakyReLuB.png", plot = last_plot(), width = 8, height = 6, dpi = 300)
+ggsave(filename = "Plots/GS80N01LR.png", plot = last_plot(), width = 8, height = 6, dpi = 300)
