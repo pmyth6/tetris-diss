@@ -25,7 +25,7 @@ class Game:
         #get grid
         input_grid = self.grid.get_grid()
         #get move
-        next_move = self.model.model_play(input_grid)
+        next_move = self.model.model_play(input_grid, self.grid.scenario_no)
         #interpret and execute move
         enumerate(next_move)
         if next_move[0] == "h":
@@ -127,14 +127,14 @@ class Game:
             self.grid.grid[position.row][position.column] = 1 #when blocks lock they are light grey
         self.current_block = self.next_block
         self.next_block = DBlock()
-        if self.grid.is_row_full(19) == True:
+        if self.grid.is_row_empty(18) == False or self.grid.is_row_full(19) == True:
             self.game_over = True
             self.reset()
         if self.game_over == False:
             #get grid
             input_grid = self.grid.get_grid()
             #get move
-            next_move = self.model.model_play(input_grid)
+            next_move = self.model.model_play(input_grid, self.grid.scenario_no)
             #interpret and execute move
             enumerate(next_move)
             if next_move[0] == "h":

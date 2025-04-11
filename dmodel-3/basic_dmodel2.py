@@ -18,7 +18,7 @@ class Model:
     def __init__(self):
         
         self.model = keras.models.Sequential()
-        self.model.add(keras.Input(shape=(2, 10)))
+        self.model.add(keras.Input(shape=(5, 10)))
         self.model.add(keras.layers.Flatten())
         self.model.add(keras.layers.Dense(30, kernel_initializer='he_normal', 
                                             activation=keras.layers.LeakyReLU(negative_slope=0.01), use_bias=False))
