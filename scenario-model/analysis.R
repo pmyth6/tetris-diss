@@ -2,7 +2,7 @@ library(randomcoloR)
 library(ggplot2)
 library(dplyr)
 
-data = read.csv("learningrate005.csv") # Load your dataset
+data = read.csv("log-lrelux3-30n-lr001.csv") # Load your dataset
 n = length(data$probability)
 
 # Mutate the data in the "move" column
@@ -37,4 +37,4 @@ ggplot(percentages, aes(x = batch, y = match_percent)) +
        y = "Percentage Match") +
   theme_bw()
 
-ggsave(filename = "lr005.png", plot = last_plot(), width = 6, height = 4.5, dpi = 300)
+ggsave(filename = "scen1-lrelulrelulrelu-001.png", plot = last_plot(), width = 6, height = 4.5, dpi = 300)

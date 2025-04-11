@@ -1,5 +1,6 @@
 import tensorflow as tf
 from tensorflow import keras
+from tensorflow.keras.layers import LeakyReLU
 import numpy as np
 import csv
 
@@ -7,15 +8,15 @@ import csv
 model = keras.models.Sequential()
 model.add(keras.Input(shape=(2, 10)))
 model.add(keras.layers.Flatten())
-model.add(keras.layers.Dense(20, kernel_initializer='RandomNormal', 
-                                    activation="sigmoid", use_bias=False))
-model.add(keras.layers.Dense(20, kernel_initializer='RandomNormal', 
-                                    activation="sigmoid", use_bias=False))
-model.add(keras.layers.Dense(20, kernel_initializer='RandomNormal', 
-                                    activation="sigmoid", use_bias=False))
+model.add(keras.layers.Dense(30, kernel_initializer='he_normal', 
+                                    activation=keras.layers.LeakyReLU(negative_slope=0.01), use_bias=False))
+model.add(keras.layers.Dense(30, kernel_initializer='he_normal', 
+                                    activation=keras.layers.LeakyReLU(negative_slope=0.01), use_bias=False))
+model.add(keras.layers.Dense(30, kernel_initializer='he_normal', 
+                                    activation=keras.layers.LeakyReLU(negative_slope=0.01), use_bias=False))
 model.add(keras.layers.Dense(19, activation="softmax", 
                                     use_bias=False))
-optimizer = keras.optimizers.Adam(learning_rate=0.001)
+optimizer = keras.optimizers.Adam(learning_rate=0.0008)
 
 # Allocate the moves
 moves = ["v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8", "v9", "v0", 
@@ -77,10 +78,10 @@ while True:
     optimizer.apply_gradients(zip(grads, model.trainable_weights))
 
     # Save the model
-    model.save("model.keras")
+    model.save("model-lrelux3-30n-lr0008.keras")
 
     # Save to csv
-    filename = "log.csv"
+    filename = "log-lrelux3-30n-lr0008.csv"
     file_exists = False
     try:
         with open(filename, 'r'):

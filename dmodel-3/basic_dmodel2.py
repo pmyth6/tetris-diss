@@ -17,32 +17,17 @@ from Dgrid import Grid
 class Model:
     def __init__(self):
         
-        #create a sequential model
         self.model = keras.models.Sequential()
-
-        #input layer to define the input shape
-        self.model.add(keras.Input(shape=(5, 10)))
-
-        #convert each grid (2x10 array) to a 1D array
+        self.model.add(keras.Input(shape=(2, 10)))
         self.model.add(keras.layers.Flatten())
-
-        #dense layers
-        self.model.add(keras.layers.Dense(20, kernel_initializer='he_normal', 
-                                          activation=keras.layers.LeakyReLU(negative_slope=0.01), use_bias=False))
-        self.model.add(keras.layers.Dense(20, kernel_initializer='glorot_normal', 
-                                          activation="sigmoid", use_bias=False))
-        self.model.add(keras.layers.Dense(20, kernel_initializer='glorot_normal', 
-                                          activation="sigmoid", use_bias=False))
-
-        #output layer
+        self.model.add(keras.layers.Dense(30, kernel_initializer='he_normal', 
+                                            activation=keras.layers.LeakyReLU(negative_slope=0.01), use_bias=False))
+        self.model.add(keras.layers.Dense(30, kernel_initializer='he_normal', 
+                                            activation=keras.layers.LeakyReLU(negative_slope=0.01), use_bias=False))
+        self.model.add(keras.layers.Dense(30, kernel_initializer='he_normal', 
+                                            activation=keras.layers.LeakyReLU(negative_slope=0.01), use_bias=False))
         self.model.add(keras.layers.Dense(19, activation="softmax", 
-                                          use_bias=False))
-
-        
-        #load previous model
-        #self.model = keras.models.load_model("model.keras", custom_objects={"LeakyReLU": LeakyReLU})
-        
-
+                                            use_bias=False))
         self.optimizer = keras.optimizers.Adam(learning_rate=0.0008)
         
         self.moves = ["v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8", "v9", "v0",
@@ -233,7 +218,7 @@ class Model:
             
 
     def save_to_csv(self, action, no_rows, gap, loss, no_games, score):
-        filename = "log-lrelusigsig-lr0008.csv"
+        filename = "log-lrelulrelusig-lr0005.csv"
         
         file_exists = False
         try:
@@ -255,5 +240,5 @@ class Model:
             writer.writerow(row)
 
         # Save the model
-        model_filename = "model-lrelusigsig-lr0008.keras"
+        model_filename = "model-lrelulrelusig-lr0005.keras"
         self.model.save(model_filename)

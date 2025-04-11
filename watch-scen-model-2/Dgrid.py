@@ -47,7 +47,7 @@ class Grid:
             if num <= 10:
                 grid[:, num-1] = 0  # Set both rows to 0 at the index
             else:
-                grid[1, num-11:num-9] = 0  # Set two consecutive elements in row 1 to 0
+                grid[0, num-11:num-9] = 0  # Set two consecutive elements in row 1 to 0
         return grid
     
     # Get scenario
@@ -71,7 +71,9 @@ class Grid:
         #return the grid in the correct format for the model
         grid = self.grid_pass
         tensor = tf.constant(grid, dtype=tf.float32)
-        input_tensor = tf.expand_dims(tensor, axis=0)
+        input_tensor = tf.stack([tensor[1], tensor[0]])
+        input_tensor = tf.expand_dims(input_tensor, axis=0)
+        
         return input_tensor
             
     def is_inside(self, row, column):

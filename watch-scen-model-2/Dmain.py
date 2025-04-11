@@ -23,7 +23,7 @@ clock = pygame.time.Clock() #setting the frame rate of the game
 game = Game()
 
 GAME_UPDATE = pygame.USEREVENT
-pygame.time.set_timer(GAME_UPDATE, 50)
+pygame.time.set_timer(GAME_UPDATE, 90)
 
 pause = False
 
@@ -42,12 +42,14 @@ while True: #initialising the game
 
         if event.type == GAME_UPDATE and game.game_over == False and pause == False:
             game.move_down()
+            game.update()
+            game.draw()
+            clock.tick(125)
      
     #Drawing
-    screen.fill(Colors.dark_blue)
-    game.draw(screen)
+    # game.draw()
     
-    pygame.display.update()
-    clock.tick(125) #the while loop will run 60 times a second
+    # pygame.display.update()
+    # clock.tick(125) #the while loop will run 60 times a second
                    #if we didn't set a frame rate the game would run as fast as possible
                    #leading to inconsistensies in speed

@@ -4,7 +4,7 @@ import numpy as np
 import os
 
 # File path
-file_path = 'log-lrelusigsig.csv'
+file_path = 'log-lrelulrelusig-lr0005.csv'
 
 # Calculate file size in GB
 file_size_gb = os.path.getsize(file_path) / (1024**3)
@@ -34,7 +34,7 @@ repeat_counts = []
 repeat_positions = []
 
 # Create output directory for plots
-output_dir = 'analysis_plots1'
+output_dir = 'analysis_plots_lrelulrelusig-lr0005'
 os.makedirs(output_dir, exist_ok=True)
 
 # Process the file in chunks

@@ -8,6 +8,7 @@ Created on Mon Jan 20 12:14:24 2025
 
 import tensorflow as tf
 from tensorflow import keras
+from tensorflow.keras.layers import LeakyReLU
 import numpy as np
 import csv
 import random as rd
@@ -26,11 +27,11 @@ class Model:
         self.model.add(keras.layers.Flatten())
 
         #dense layers
-        self.model.add(keras.layers.Dense(20, kernel_initializer='RandomNormal', 
+        self.model.add(keras.layers.Dense(20, kernel_initializer='he_normal', 
+                                          activation=keras.layers.LeakyReLU(negative_slope=0.01), use_bias=False))
+        self.model.add(keras.layers.Dense(20, kernel_initializer='glorot_normal', 
                                           activation="sigmoid", use_bias=False))
-        self.model.add(keras.layers.Dense(20, kernel_initializer='RandomNormal', 
-                                          activation="sigmoid", use_bias=False))
-        self.model.add(keras.layers.Dense(20, kernel_initializer='RandomNormal', 
+        self.model.add(keras.layers.Dense(20, kernel_initializer='glorot_normal', 
                                           activation="sigmoid", use_bias=False))
 
         #output layer
@@ -42,7 +43,7 @@ class Model:
         self.model = keras.models.load_model("model.keras")
         '''
 
-        self.optimizer = keras.optimizers.Adam(learning_rate=0.1)
+        self.optimizer = keras.optimizers.Adam(learning_rate=0.0005)
         
         self.moves = ["v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8", "v9", "v0",
                       "h1", "h2", "h3", "h4", "h5", "h6", "h7", "h8", "h9"]
@@ -115,7 +116,7 @@ class Model:
                     self.optimizer.apply_gradients([(mean_gradients, var)])
 
                 # Save model
-                self.model.save("model.keras")
+                self.model.save("model-lrelusigsig-lr0005-batch-rewardnonrepeatedmoves.keras")
 
                 # Reset rewards
                 self.all_rewards = []
@@ -134,8 +135,21 @@ class Model:
     
 
     def loss_fn(self, current_move, probabilities, action_index, action):
+        # Get the number of the row the block will be placed in
+        self.row = self.calculate_row_placement(action)
+
         # Get the probability of the chosen action
         action_prob = probabilities[0, action_index]
+        
+        # Punish for the row the block is placed in (squared)
+        # Values ranging 1 to 25
+        #base_loss = self.row**2 
+        
+        # Reward if the model does not make the same move twice
+        # Values ranging 0 to 10
+        repeat_loss = 0
+        if self.previous_action == action:
+            repeat_loss = 10
             
         # Reward for an increase in score
         # Values ranging 0 to 800 depending on the number of lines cleared
@@ -143,8 +157,6 @@ class Model:
         grid_instance = Grid()
         predicted_grid = current_move.numpy().flatten()
         predicted_grid = predicted_grid.reshape(5, 10)
-        # Get the number of the row the block will be placed in
-        self.row = self.calculate_row_placement(action)
         # Apply the chosen action to the grid
         if action[0] == "v":
             if int(action[1]) > 0:
@@ -170,13 +182,36 @@ class Model:
             score_loss = 500
         if lines_cleared == 4:
             score_loss = 800
-
-        # Reward for the number of 1s in the grid
-        # Values ranging 0 to 50
-        no_ones = tf.reduce_sum(grid_instance.grid).numpy()
         
+        # Punish for leaving any gaps
+        # Values ranging 0 to 64
+        # self.gap = self.calculate_gap(action)
+        # gap_loss = self.gap**3 
+
+        # Reward for vertical moves (higher reward for row 1)
+        # Values ranging 25 to 50
+        # if action[0] == "v":
+        #     v_loss = 25
+        #     if self.row == 1:
+        #         v_loss = 50 
+        # else:
+        #     v_loss = 0
+
+        # Punish for losing a game
+        # Values ranging 0 to 100
+        # game_loss = 0
+        # if action[0] == "v" and self.row >=4:
+        #     game_loss = 100
+        # if action[0] == "h" and self.row == 5:
+        #     game_loss = 100
+
         # Punish is -, reward is +
-        return (action_prob/100000 + score_loss + no_ones), grid_instance.grid, score_loss
+        return (action_prob/100000 + repeat_loss + score_loss), grid_instance.grid, score_loss
+        # return (-base_loss + action_prob/100000 - repeat_loss + score_loss - 
+        #          gap_loss + v_loss - game_loss), grid_instance.grid, score_loss
+
+        #return (-base_loss + action_prob/100000 + score_loss), grid_instance.grid, score_loss
+
     
     def calculate_row_placement(self, action):
         # 1 1
@@ -207,8 +242,27 @@ class Model:
         return row+1
     
 
+    def calculate_gap(self, action):
+        gap = 0
+        row = self.row-1
+        col = int(action[1])
+        col -= 1 # Zero based indexing
+        
+        if action[0] == "h" and row!=0:
+            while self.current_grid[0, 5-row, col] == 0 or self.current_grid[0, 5-row, col+1] == 0:
+                row -= 1
+                gap += 1
+                if row == 0:
+                    break
+                
+                
+        
+        return gap
+
+            
+
     def save_to_csv(self, action, no_rows, gap, loss, no_games, score):
-        filename = "log.csv"
+        filename = "log-lrelusigsig-lr0005-batch-rewardnonrepeatedmoves.csv"
         
         file_exists = False
         try:

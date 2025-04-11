@@ -1,6 +1,6 @@
 library(randomcoloR)
 library(ggplot2)
-data = read.csv("log.csv")
+data = read.csv("log1.csv")
 data$loss <- gsub("\\[|\\]", "", data$loss)
 data$loss = as.numeric(data$loss)
 data$probability <- gsub("\\[|\\]", "", data$probability)
@@ -24,6 +24,8 @@ ggplot(data, aes(x=move_no, y=loss, color=move))+
     legend.text = element_text(size = 14)  # Increase legend text size
   )
 
+ggsave(filename = "lr01-noconvergence-loss.png", plot = last_plot(), width = 6, height = 4.5, dpi = 300)
+
 ggplot(data, aes(x=move_no, y=probability, color=move))+
   geom_point(size=1)+
   theme_minimal()+
@@ -35,5 +37,7 @@ ggplot(data, aes(x=move_no, y=probability, color=move))+
     legend.title = element_text(size = 16),  # Increase legend title size
     legend.text = element_text(size = 14)  # Increase legend text size
   )
+
+ggsave(filename = "lr01-noconvergence-prob.png", plot = last_plot(), width = 6, height = 4.5, dpi = 300)
 
 

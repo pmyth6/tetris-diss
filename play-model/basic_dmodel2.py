@@ -8,13 +8,15 @@ Created on Mon Jan 20 12:14:24 2025
 
 import tensorflow as tf
 from tensorflow import keras
+from tensorflow.keras.models import load_model
+from tensorflow.keras.layers import LeakyReLU
 import numpy as np
 import csv
 
 class Model:
     def __init__(self):
         #load model
-        self.model = keras.models.load_model("modelbatches.keras")
+        self.model = load_model("model-lrelusigsig-lr0005-batch-rewardnonrepeatedmoves.keras", custom_objects={'LeakyReLU': LeakyReLU})
         
         self.moves = ["v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8", "v9", "v0",
                       "h1", "h2", "h3", "h4", "h5", "h6", "h7", "h8", "h9"]

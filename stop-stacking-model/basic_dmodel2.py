@@ -91,8 +91,8 @@ class Model:
         # Punish if the model makes the same move twice
         # Values ranging 0 to 10
         repeat_loss = 0
-        if self.previous_action == action:
-            repeat_loss = 1000000000000
+        if self.previous_action != action:
+            repeat_loss = 10
             
         # Reward for an increase in score
         # Values ranging 0 to 800 depending on the number of lines cleared
@@ -152,7 +152,7 @@ class Model:
         # return (-base_loss + action_prob/100000 - repeat_loss + score_loss - 
                  # gap_loss + v_loss - game_loss), grid_instance.grid, score_loss
 
-        return (action_prob/100000 - repeat_loss), grid_instance.grid, score_loss
+        return (action_prob/100000 + repeat_loss), grid_instance.grid, score_loss
 
     
     def calculate_row_placement(self, action):
